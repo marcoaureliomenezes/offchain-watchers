@@ -1,0 +1,45 @@
+version: '2.1'
+services:
+
+  mysql:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: mysql
+    restart: always
+    ports:
+      - "33600:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: data_master
+    volumes:
+      - /opt/mysql_data_dm3:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          'mysqladmin',
+          'ping',
+          '-h',
+          'mysql',
+          '-u',
+          'root',
+          '-p$$MYSQL_ROOT_PASSWORD'
+        ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+
+  chainwatcher:
+    image: chainwatcher:0.1
+    build: ./
+    restart: always
+    container_name: chainwatcher
+    volumes:
+      - ./src:/app
+    environment:
+      WEB3_INFURA_PROJECT_ID: 
+      ENV: DEV
+      DEV_MYSQL_HOST: 'mysql'
+      DEV_MYSQL_USER: 'root'
+      DEV_MYSQL_PASSWD: 'root'
+
