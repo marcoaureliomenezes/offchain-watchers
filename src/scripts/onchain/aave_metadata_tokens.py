@@ -1,16 +1,14 @@
 
-from brownie import network, interface
+from brownie import interface
 import pandas as pd
 from requests import HTTPError
-from scripts.utils.utils import get_mysql_url, get_mysql_engine, table_exists
-from scripts.utils.aave_interfaces import get_pool, get_indexes_datatypes
-from dotenv import load_dotenv
-import os, sys
+from scripts.utils.utils import setup_database, table_exists
+from scripts.utils.interfaces import get_aave_pool, get_indexes_datatypes
+import sys
 
-load_dotenv('/app/.env')
 
 def get_reserve_tokens(token):
-    pool_contract = get_pool()
+    pool_contract = get_aave_pool()
     list_type_tokens = ["aTokenAddress", "stableDebtTokenAddress", "variableDebtTokenAddress"]
     res = get_indexes_datatypes(list_type_tokens)
     tokens = [pool_contract.getReserveData(token)[res[type_token]] for type_token in list_type_tokens]
@@ -58,11 +56,9 @@ def update_metadata_tokens(tokens, table, db_engine):
 
 def main():
 
-    TABLE_NAME, ENVIRONMENT = ("metadata_tokens", os.getenv('ENV'))
-    database = network.show_active().replace("-", "_")
-    url_engine = get_mysql_url(database, env=ENVIRONMENT)
-    db_engine = get_mysql_engine(url_engine)
-    aave_tokens = get_pool().getReservesList()
+    TABLE_NAME = "metadata_tokens"
+    db_engine = setup_database()
+    aave_tokens = get_aave_pool().getReservesList()
     metadata_assets = update_metadata_tokens(aave_tokens, TABLE_NAME, db_engine)
     print(metadata_assets)
 

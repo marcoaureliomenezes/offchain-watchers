@@ -1,6 +1,6 @@
 import pandas as pd
 from scripts.utils.utils import setup_database, table_exists
-from scripts.utils.aave_interfaces import get_price_oracle, get_V3_aggregator
+from scripts.utils.interfaces import get_price_oracle, get_V3_aggregator
 
 
 fulfill_data_asset = lambda v3_contract, token: {

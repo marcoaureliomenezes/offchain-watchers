@@ -12,11 +12,11 @@ Uma rede blockchain é baseada em uma arquitetura de rede Peer-to-peer (P2P), on
 #### Cadeia de blocos Simples (rede P2P de um nó somente)
 
 
-NUM_BLOCO 0:
-NONCE: Número inteiro que o minerador do bloco acertou.
-DATA: Qualquer coisa.
-HASH_ANTERIOR=0x00000000000000000000000000000000
-HASH: 0x000000664a6ea6f46df65aef3ca1abe9
+    NUM_BLOCO 0:
+    NONCE: Número inteiro que o minerador do bloco acertou.
+    DATA: Qualquer coisa.
+    HASH_ANTERIOR=0x00000000000000000000000000000000
+    HASH: 0x000000664a6ea6f46df65aef3ca1abe9
 
 OBS: O campo HASH é a saída da função ALGORITMO_HASH(NUM_BLOCO, NONCE, DATA, HASH_ANTERIOR) < 0x000000ffffffffffffffffffffffffff
 
@@ -24,11 +24,11 @@ OBS: O campo HASH é a saída da função ALGORITMO_HASH(NUM_BLOCO, NONCE, DATA,
  Bloco foi mineirado quando o nó acertou um valor aleatório no campo NONCE que gerou um HASH que satisfez a condição exigida e validou os dados dentro do campo DATA. Então o segundo bloco é minerado.
 
 
-NUM_BLOCO 1:
-NONCE: Número inteiro que o minerador do bloco acertou.
-DATA: Qualquer coisa.
-HASH_ANTERIOR=0x000000664a6ea6f46df65aef3ca1abe9
-HASH: 0x0000004b56ea2a379bea4aef39a1bae1
+    NUM_BLOCO 1:
+    NONCE: Número inteiro que o minerador do bloco acertou.
+    DATA: Qualquer coisa.
+    HASH_ANTERIOR=0x000000664a6ea6f46df65aef3ca1abe9
+    HASH: 0x0000004b56ea2a379bea4aef39a1bae1
 
 Note que o bloco contém o campo HASH_ANTERIOR. Como esse HASH_ANTERIOR é saída do algoritmo de HASH do bloco anterior, e esse algoritmo tem como entrada todos os dados deste bloco anterior, a consequencia é que enquanto cresce a cadeia de blocos, alterações nos dados de blocos que ja foram publicados anteriormente seja extremamente dificil, quando comela s ser consoderado que a rede possui múltiplos nós mineradores. Visto que o meliante precisaria minerar todos os blocos posteriores novamente em um período de tempo inversamente proporcional ao número de nós que tem na rede.
 
@@ -44,6 +44,12 @@ Hashing Power.
 ## AAVE Um protocolo DEFI:
 
 ### Aave V2
+
+
+Para mais informações sobre o protocolo, segue artigo de referência para versão 2 no protocolo Aave.
+
+https://github.com/aave/protocol-v2/blob/master/aave-v2-whitepaper.pdf
+
 
 Polygon: 
     LendingPoolAddressesProvider: 0xd05e3E715d945B59290df0ae8eF85c1BdB684744

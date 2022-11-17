@@ -2,7 +2,7 @@ from brownie import network
 import pandas as pd
 from requests import HTTPError
 from scripts.utils.utils import setup_database, table_exists
-from scripts.utils.aave_interfaces import get_price_oracle
+from scripts.utils.interfaces import get_price_oracle
 import time, os, sys
 from datetime import datetime
 
