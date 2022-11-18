@@ -2,13 +2,13 @@ import requests, os
 import pandas as pd
 from dotenv import load_dotenv
 from requests.exceptions import InvalidSchema, ConnectionError
+
 load_dotenv()
 
 DICT_NETWORK = {
                     'mainnet': ['etherscan.io', os.getenv('ETH_API_KEY') ] , 
-                    'polygon-main': ['polygonscan.com', os.getenv('ETH_API_KEY')]
+                    'polygon-main': ['polygonscan.com', os.getenv('POL_API_KEY')]
 }
-
 
 
 def parse_request_dataframe(request_url):
@@ -52,7 +52,4 @@ def req_etherscan(network, method, method_arguments):
 
 
 if __name__ == '__main__':
-    result = req_etherscan('mainnet', get_block_by_time_url, {'timestamp': '1668694071'})
-    print(result)
-    result = req_etherscan('mainnet', get_txlist_url, {'address': '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9', 'startblock': '15990110', 'endblock': '15990230'})
-    print(result)
+    pass

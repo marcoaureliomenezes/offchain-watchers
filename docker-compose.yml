@@ -29,11 +29,19 @@ services:
       interval: 10s
       retries: 10
 
-  chainwatcher:
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    container_name: rabbitmq
+    ports:
+      - 15672:15672
+      - 5672:5672
+
+  chainwatcher1:
     image: chainwatcher:0.1
     build: ./
     restart: always
-    container_name: chainwatcher
+    container_name: chainwatcher1
     volumes:
       - ./src:/app
     environment:
@@ -43,3 +51,16 @@ services:
       DEV_MYSQL_USER: 'root'
       DEV_MYSQL_PASSWD: 'root'
 
+  chainwatcher2:
+    image: chainwatcher:0.1
+    build: ./
+    restart: always
+    container_name: chainwatcher2
+    volumes:
+      - ./src:/app
+    environment:
+      WEB3_INFURA_PROJECT_ID: 
+      ENV: DEV
+      DEV_MYSQL_HOST: 'mysql'
+      DEV_MYSQL_USER: 'root'
+      DEV_MYSQL_PASSWD: 'root'

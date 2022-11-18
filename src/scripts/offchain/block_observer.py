@@ -1,25 +1,35 @@
-from scripts.utils.etherscan_api import get_txlist, get_block_by_time
+import time, logging, pika, json
+from brownie import network
 import pandas as pd
-import time
+from scripts.utils.utils import setup_database
+from scripts.utils.etherscan_api import req_etherscan, get_block_by_time_url
 
 
-def get_aave_pool_contract():
-    pass
-def get_uniswap_pools_contracts():
-    pass
+
+def create_message(connection, channel, block_no):
+    channel.basic_publish(
+        exchange='order',
+        routing_key='order.notify',
+        body = json.dumps({'block_no': block_no})
+    )
+    print(f'Block {block_no} broadcasted!')
+    
 
 
-def get_last_block(last_block):
-    actual_block = get_block_by_time(int(time.time()))
-    if actual_block != last_block:
-        print(actual_block)
-        last_block = actual_block
-        return last_block
+def main(freq):
+    previous_block = 0
+    chain = network.show_active()
+    connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
+    channel = connection.channel()
+    channel.exchange_declare(exchange='order', exchange_type='direct')
 
-
-def main():
-    last_block = 0
     while 1:
 
-        get_last_block(last_block)
-        time.sleep(1)
+        timestamp = int(time.time())
+        actual_block = req_etherscan(chain, get_block_by_time_url, {'timestamp': timestamp})
+        
+        if actual_block != previous_block:
+            create_message(connection, channel, actual_block)
+            previous_block = actual_block
+        time.sleep(float(freq))
+    connection.close()
