@@ -1,9 +1,8 @@
 import os
 from subprocess import Popen
-from brownie import network
 from sqlalchemy import create_engine
 from sqlalchemy.engine.reflection import Inspector
-from sqlalchemy.types import VARCHAR, DECIMAL
+from sqlalchemy.types import DECIMAL
 from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
 from kafka import KafkaProducer, KafkaConsumer
@@ -52,9 +51,9 @@ def get_mysql_engine(engine_url):
     return db_engine
 
 
-def setup_database():
+def setup_database(network):
     ENV = os.getenv('ENV')
-    database = network.show_active().replace("-", "_")
+    database = network.replace("-", "_")
     url_engine = get_mysql_url(database, env=ENV)
     return get_mysql_engine(url_engine)
 

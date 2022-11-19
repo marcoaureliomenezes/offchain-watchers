@@ -1,6 +1,6 @@
 import time, os
 import pandas as pd
-from scripts.utils.etherscan_api import get_txlist, get_block_by_time
+from docker.offchain.src.utils.etherscan_api import get_txlist, get_block_by_time
 from scripts.utils.utils import setup_database
 
 pd.options.display.max_colwidth = 100

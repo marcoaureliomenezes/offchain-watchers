@@ -18,16 +18,15 @@ services:
       interval: 10s
       retries: 10
 
-  blocks_observer:
-    image: chainwatcher:0.1
-    build: ./
+  off_chain_blocks_observer:
+    image: offchain-watcher:0.1
+    build: ./docker/offchain/
     restart: always
-    container_name: blocks_observer
-    entrypoint: "brownie run scripts/offchain/block_observer.py main 1 block_clock --network mainnet"
-    volumes:
-      - ./src:/app
+    container_name: off_chain_blocks_observer
+    entrypoint: "python block_observer.py freq=1 topic=block_clock network=mainnet"
+    # volumes:
+    #   - ./docker/offchain/src:/app
     environment:
-      WEB3_INFURA_PROJECT_ID:
       SCAN_KEY:
       ENV: DEV
       DEV_KAFKA_HOST: 'kafka:9092'
@@ -35,35 +34,39 @@ services:
       - kafka
 
 
-  aave_pool_observer:
-    image: chainwatcher:0.1
-    build: ./
+  observer_aave_pool:
+    image: offchain-watcher:0.1
+    build: ./docker/offchain/
     restart: always
-    container_name: aave_pool_observer
-    entrypoint: "brownie run scripts/offchain/contracts_observer.py main block_clock aave_contract --network mainnet"
-    volumes:
-      - ./src:/app
+    depends_on:
+      - kafka
+      - zookeeper
+    container_name: observer_aave_pool
+    entrypoint: "python contracts_observer.py topic_in=block_clock topic_out=aave_v2_tx network=mainnet"
+    # volumes:
+    #   - ./docker/offchain/src:/app
     environment:
       WEB3_INFURA_PROJECT_ID: 
       SCAN_KEY:
       LIST_ADDRESSES: '["0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9"]'
-      CONSUMER_GROUP: '["erc20_group1"]'
+      CONSUMER_GROUP: '["aave_group1"]'
       ENV: DEV
       DEV_MYSQL_HOST: 'mysql'
       DEV_MYSQL_USER: 'root'
       DEV_MYSQL_PASSWD: 'root'
       DEV_KAFKA_HOST: 'kafka:9092'
+
+  observers_erc20_stable_coins:
+    image: offchain-watcher:0.1
+    build: ./docker/offchain/
+    restart: always
     depends_on:
       - kafka
-
-  erc20_stable_coins_observers:
-    image: chainwatcher:0.1
-    build: ./
-    restart: always
-    container_name: erc20_stable_coins_observers
-    entrypoint: "brownie run scripts/offchain/contracts_observer.py main block_clock crypto_coins --network mainnet"
-    volumes:
-      - ./src:/app
+      - zookeeper
+    container_name: observers_erc20_stable_coins
+    entrypoint: "python contracts_observer.py topic_in=block_clock topic_out=erc20_stable_coin_tx network=mainnet"
+    # volumes:
+    #   - ./docker/offchain/src:/app
     environment:
       WEB3_INFURA_PROJECT_ID:
       SCAN_KEY:
@@ -74,18 +77,20 @@ services:
       DEV_MYSQL_USER: 'root'
       DEV_MYSQL_PASSWD: 'root'
       DEV_KAFKA_HOST: 'kafka:9092'
+
+
+
+  observers_erc20_crypto_coins:
+    image: offchain-watcher:0.1
+    build: ./docker/offchain/
+    restart: always
     depends_on:
       - kafka
-
-
-  erc20_crypto_coins_observers:
-    image: chainwatcher:0.1
-    build: ./
-    restart: always
-    container_name: erc20_crypto_coins_observers
-    entrypoint: "brownie run scripts/offchain/contracts_observer.py main block_clock stable_coins --network mainnet"
+      - zookeeper
+    container_name: observers_erc20_crypto_coins
+    entrypoint: "python contracts_observer.py topic_in=block_clock topic_out=erc20_crypto_coin_tx network=mainnet"
     volumes:
-      - ./src:/app
+      - ./docker/offchain/src:/app
     environment:
       WEB3_INFURA_PROJECT_ID:
       SCAN_KEY:
@@ -96,28 +101,7 @@ services:
       DEV_MYSQL_USER: 'root'
       DEV_MYSQL_PASSWD: 'root'
       DEV_KAFKA_HOST: 'kafka:9092'
-    depends_on:
-      - kafka
 
-
-  # oracles_watcher:
-  #   image: chainwatcher:0.1
-  #   build: ./
-  #   restart: always
-  #   container_name: oracles_watcher
-  #   #entrypoint: "brownie run scripts/offchain/block_observer.py  main 1 --network mainnet"
-  #   volumes:
-  #     - ./src:/app
-  #   environment:
-  #     WEB3_INFURA_PROJECT_ID:
-  #     SCAN_KEY:
-  #     ENV: DEV
-  #     DEV_MYSQL_HOST: 'mysql'
-  #     DEV_MYSQL_USER: 'root'
-  #     DEV_MYSQL_PASSWD: 'root'
-  #     DEV_KAFKA_HOST: 'kafka:9092'
-  #   depends_on:
-  #     - kafka
 
 
   zookeeper:
