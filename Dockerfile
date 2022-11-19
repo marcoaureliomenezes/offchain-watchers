@@ -19,4 +19,4 @@ COPY ./src .
 RUN ln -s /app/scripts/run_alles.sh /usr/local/bin/RUN_ALLES
 RUN brownie compile
 
-CMD [ "sleep", "infinity" ]
+ENTRYPOINT [ "sleep", "infinity" ]

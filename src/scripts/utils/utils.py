@@ -6,6 +6,38 @@ from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.types import VARCHAR, DECIMAL
 from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
+from kafka import KafkaProducer, KafkaConsumer
+from kafka.admin import NewTopic, KafkaAdminClient
+import json
+
+def get_partition(key, all, available):
+    return 0
+
+
+def get_kafka_producer(host, partitioner=get_partition):
+    json_serializer = lambda data: json.dumps(data).encode('utf-8')
+    return KafkaProducer(bootstrap_servers=[host], value_serializer=json_serializer, partitioner=partitioner)
+
+
+def get_kafka_consumer(host, topic, group_id, auto_offset_reset='latest'):
+    return KafkaConsumer(topic, bootstrap_servers=host,
+                        auto_offset_reset=auto_offset_reset, group_id=group_id)
+
+
+def configure_kafka_topics(host, topics_config):
+    admin = KafkaAdminClient(bootstrap_servers=[host])
+    topics = [i for i in admin.list_topics() if i[0] != "_"]
+    _ = admin.delete_topics(topics=topics) if len(topics) > 0 else None
+    topic_blocks = NewTopic(name="block_clock", num_partitions=1, replication_factor=1)
+    topic_txs = NewTopic(name="transactions", num_partitions=3, replication_factor=1)
+    admin.create_topics(new_topics=[topic_blocks, topic_txs], validate_only=False)
+    return
+
+
+
+def get_kafka_host(env='DEV'):
+    ENV = os.getenv('ENV')
+    return os.getenv(f"{ENV}_KAFKA_HOST")
 
 
 def get_mysql_url(database, env='DEV'):
@@ -19,10 +51,11 @@ def get_mysql_engine(engine_url):
         create_database(db_engine.url)
     return db_engine
 
+
 def setup_database():
-    ENVIRONMENT = os.getenv('ENV')
+    ENV = os.getenv('ENV')
     database = network.show_active().replace("-", "_")
-    url_engine = get_mysql_url(database, env=ENVIRONMENT)
+    url_engine = get_mysql_url(database, env=ENV)
     return get_mysql_engine(url_engine)
 
 
