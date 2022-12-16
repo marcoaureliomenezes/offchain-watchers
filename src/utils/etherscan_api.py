@@ -1,14 +1,12 @@
+import sys, logging
 import requests, os
 import pandas as pd
-from dotenv import load_dotenv
 from requests.exceptions import InvalidSchema, ConnectionError
 
-load_dotenv()
 
-DICT_NETWORK = {
-                    'mainnet': ['etherscan.io', os.getenv('ETH_API_KEY') ] , 
-                    'polygon-main': ['polygonscan.com', os.getenv('POL_API_KEY')]
-}
+logging.basicConfig(level='INFO')
+
+DICT_NETWORK = {'mainnet': 'etherscan.io','goerli': 'etherscan.io', 'polygon-main': 'polygonscan.com'}
 
 
 def parse_request_dataframe(request_url):
@@ -36,19 +34,26 @@ def get_logs_url(api_key, url, address, fromblock, toblock, page=1, offset=100):
     return f"{url}?{base_uri_method}&address={address}&fromBlock={fromblock}&toBlock={toblock}&page={page}&offset={offset}&apikey={api_key}" 
 
 
-def req_etherscan(network, method, method_arguments):
-    api_key = DICT_NETWORK[network][1]
-    url = f"https://api.{DICT_NETWORK[network][0]}/api"
+def req_chain_scan(api_key, method, method_arguments):
+    """METHOD req_chain_scan: retrieve transactions by smart contract and block range.
+    PARM 1: Name of the network used.
+    PARM 2: API Key to use the network scan.
+    PARM 3: The method to be used to generate a URL. It can be any method above.
+    PARM 4: Interval of blocks to get the transactions.
+    RETURN a list of transactions interacting with the 
+    """
+    url = f"https://api.{DICT_NETWORK[os.environ['NETWORK']]}/api"
     request_url = method(api_key, url, **method_arguments)
     try: response = requests.get(request_url)
-    except InvalidSchema as e: print(e); return
-    except ConnectionError as e: print(e); return
+    except InvalidSchema as e: logging.error(e) ; return False
+    except ConnectionError as e: logging.error(e) ; return False
     else:
         if response.status_code == 200:
             content = response.json()
             if content['status'] == '1':
                 return content['result']
-        return
+
+            return False
 
 
 if __name__ == '__main__':

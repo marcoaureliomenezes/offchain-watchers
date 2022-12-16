@@ -13,34 +13,31 @@ def get_partition(key, all, available):
     return 0
 
 
-def get_kafka_producer(host, partitioner=get_partition):
+def get_kafka_producer(partitioner=get_partition):
+    host = os.environ['KAFKA_HOST'].split(",")
     json_serializer = lambda data: json.dumps(data).encode('utf-8')
-    return KafkaProducer(bootstrap_servers=[host], value_serializer=json_serializer, partitioner=partitioner)
+    return KafkaProducer(bootstrap_servers=host, value_serializer=json_serializer, partitioner=partitioner)
 
 
-def get_kafka_consumer(host, topic, group_id, auto_offset_reset='latest'):
+def get_kafka_consumer(topic, group_id, auto_offset_reset='latest'):
+    host = os.environ['KAFKA_HOST'].split(",")
     return KafkaConsumer(topic, bootstrap_servers=host,
                         auto_offset_reset=auto_offset_reset, group_id=group_id)
 
 
-def configure_kafka_topics(host, topics_config):
-    admin = KafkaAdminClient(bootstrap_servers=[host])
-    topics = [i for i in admin.list_topics() if i[0] != "_"]
-    _ = admin.delete_topics(topics=topics) if len(topics) > 0 else None
-    topic_blocks = NewTopic(name="block_clock", num_partitions=1, replication_factor=1)
-    topic_txs = NewTopic(name="transactions", num_partitions=3, replication_factor=1)
-    admin.create_topics(new_topics=[topic_blocks, topic_txs], validate_only=False)
-    return
+def create_kafka_topic(topic, num_partitions, replication_factor):
+    try:
+        host = os.environ['KAFKA_HOST'].split(",")
+        admin = KafkaAdminClient(bootstrap_servers=host)
+        topic_blocks = NewTopic(name=topic, num_partitions=num_partitions, replication_factor=replication_factor)
+        admin.create_topics(new_topics=[topic_blocks], validate_only=False)
+    except: return f"ERROR creating topic {topic}" 
+    else: return f"SUCCESS creating topic {topic}"
 
-
-
-def get_kafka_host(env='DEV'):
-    ENV = os.getenv('ENV')
-    return os.getenv(f"{ENV}_KAFKA_HOST")
 
 
 def get_mysql_url(database, env='DEV'):
-    service, user, pwd = [os.getenv(f"{env}_{i}") for i in ('MYSQL_HOST', 'MYSQL_USER', 'MYSQL_PASSWD')]
+    service, user, pwd = [os.environ[env_var] for env_var in ('MYSQL_HOST', 'MYSQL_USER', 'MYSQL_PASSWD')]
     return f'mysql+pymysql://{user}:{pwd}@{service}:3306/{database}'
 
 
