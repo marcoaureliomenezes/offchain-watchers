@@ -6,7 +6,7 @@ from requests.exceptions import InvalidSchema, ConnectionError
 
 logging.basicConfig(level='INFO')
 
-DICT_NETWORK = {'mainnet': 'etherscan.io','goerli': 'etherscan.io', 'polygon-main': 'polygonscan.com'}
+DICT_NETWORK = {'mainnet': 'api.etherscan.io','goerli': 'api-goerli.etherscan.io', 'polygon-main': 'polygonscan.com'}
 
 
 def parse_request_dataframe(request_url):
@@ -31,8 +31,12 @@ def get_txlist_url(api_key, url, address, startblock, endblock, page=1, offset=1
 
 def get_logs_url(api_key, url, address, fromblock, toblock, page=1, offset=100):
     base_uri_method = "module=logs&action=getLogs"
-    return f"{url}?{base_uri_method}&address={address}&fromBlock={fromblock}&toBlock={toblock}&page={page}&offset={offset}&apikey={api_key}" 
+    return f"{url}?{base_uri_method}&address={address}&fromBlock={fromblock}&toBlock={toblock}&page={page}&offset={offset}&apikey={api_key}"
 
+
+def get_abi_url(api_key, url, address):
+    base_uri_method = "module=contract&action=getabi"
+    return f"{url}?{base_uri_method}&address={address}&apikey={api_key}"
 
 def req_chain_scan(api_key, method, method_arguments):
     """METHOD req_chain_scan: retrieve transactions by smart contract and block range.
@@ -42,7 +46,8 @@ def req_chain_scan(api_key, method, method_arguments):
     PARM 4: Interval of blocks to get the transactions.
     RETURN a list of transactions interacting with the 
     """
-    url = f"https://api.{DICT_NETWORK[os.environ['NETWORK']]}/api"
+    url = f"https://{DICT_NETWORK[os.environ['NETWORK']]}/api"
+
     request_url = method(api_key, url, **method_arguments)
     try: response = requests.get(request_url)
     except InvalidSchema as e: logging.error(e) ; return False
@@ -52,7 +57,6 @@ def req_chain_scan(api_key, method, method_arguments):
             content = response.json()
             if content['status'] == '1':
                 return content['result']
-
             return False
 
 
