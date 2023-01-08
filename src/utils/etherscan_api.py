@@ -39,13 +39,6 @@ def get_abi_url(api_key, url, address):
     return f"{url}?{base_uri_method}&address={address}&apikey={api_key}"
 
 def req_chain_scan(api_key, method, method_arguments):
-    """METHOD req_chain_scan: retrieve transactions by smart contract and block range.
-    PARM 1: Name of the network used.
-    PARM 2: API Key to use the network scan.
-    PARM 3: The method to be used to generate a URL. It can be any method above.
-    PARM 4: Interval of blocks to get the transactions.
-    RETURN a list of transactions interacting with the 
-    """
     url = f"https://{DICT_NETWORK[os.environ['NETWORK']]}/api"
 
     request_url = method(api_key, url, **method_arguments)
