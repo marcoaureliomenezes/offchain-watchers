@@ -14,38 +14,25 @@ def get_latest_block():
         if str(e)[:3] == '429': return
         return
         
-
-
-
 if __name__ == '__main__':
-    """
-    MODULE: streaming_blocks_txs.py
-    KEY VALUE PARAMETERS:
-        network: The blockchain network to get data from.
-        topic_1: Kafka topic where mined blocks data will be sent.
-        topic_2: Kafka topic where transactions per block data will be sent.
-    Every second is tested if a new block was mined. If so, then the information about block is
-    sent through the block_clock topic and transactions confirmed by this block are sent trhough 
-    the transactions topic. Multipe API KEYS are allowed to be passed through environment variables.
-    """
+    network = os.environ["NETWORK"]
+    api_key_node = os.environ['NODE_API_KEY']
+    clock_freq = os.environ['CLOCK_FREQUENCY']
+    clock_topic = os.environ['TOPIC_CLOCK']
+    tx_topic = os.environ['TOPIC_TXS']
     previous_block = 0
-    counter_key = 0
     producer = get_kafka_producer()
-    list_api_key = [os.environ[i] for i in os.environ if i[:12] == 'NODE_API_KEY']
    
     while 1:
-        key_index = list_api_key[counter_key % len(list_api_key)]
-        web3 = Web3(Web3.HTTPProvider(f'https://{os.environ["NETWORK"]}.infura.io/v3/{key_index}'))
+        web3 = Web3(Web3.HTTPProvider(f'https://{network}.infura.io/v3/{api_key_node}'))
         actual_block = get_latest_block()
-        if not actual_block:
-            counter_key += 1
-            continue
+        if not actual_block: continue
         if actual_block != previous_block:
             block_clock = {'block_no': actual_block['number'], 'timestamp': actual_block['timestamp']}
-            producer.send(topic=os.environ['TOPIC_CLOCK'], value=block_clock)
-            block_transactions = [bytes.hex(i) for i in actual_block['transactions']][:5]
-            _ = [producer.send(topic=os.environ['TOPIC_TXS'], value=i) for i in block_transactions]
+            producer.send(topic=clock_topic, value=block_clock)
+            block_transactions = [bytes.hex(i) for i in actual_block['transactions']]
+            _ = [producer.send(topic=tx_topic, value=i) for i in block_transactions]
             previous_block = actual_block
             logging.info(f"Data about block {block_clock['block_no']} sent!")
-        time.sleep(float(os.environ['CLOCK_FREQUENCY']))
+        time.sleep(float(clock_freq))
 
